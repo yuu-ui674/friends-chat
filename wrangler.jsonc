@@ -1,0 +1,31 @@
+{
+  // Cloudflare で作る Worker の名前と、必ず同じにしてください
+  "name": "friends-chat",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-01",
+
+  // 画面（public フォルダ）の配信。/api/* と /ws だけ Worker のプログラムが処理します
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/ws"]
+  },
+
+  // チャットの部屋ごとにリアルタイム通信を受け持つ仕組み（Durable Objects）
+  "durable_objects": {
+    "bindings": [{ "name": "CHAT_ROOM", "class_name": "ChatRoom" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["ChatRoom"] }],
+
+  // ユーザー・メッセージを保存するデータベース（D1）
+  // database_id は、Cloudflare の画面で作った D1 の ID に書き換えてください
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "friends-chat-db",
+      "database_id": "ここをD1のデータベースIDに書き換える"
+    }
+  ],
+
+  "observability": { "enabled": true }
+}
