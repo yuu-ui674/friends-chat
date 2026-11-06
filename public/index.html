@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#16181d">
+  <title>友達チャット</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+
+  <!-- 読み込み中 -->
+  <main id="view-loading" class="center-view">
+    <p class="muted">読み込み中…</p>
+  </main>
+
+  <!-- ログイン・新規登録・管理者の回復 -->
+  <main id="view-auth" class="center-view" hidden>
+    <div class="card">
+      <h1 class="title">友達チャット</h1>
+
+      <div id="auth-tabs" class="tabs">
+        <button type="button" id="tab-login" class="tab active" data-tab="login">ログイン</button>
+        <button type="button" id="tab-register" class="tab" data-tab="register">新規登録</button>
+      </div>
+
+      <form id="form-login" class="form">
+        <label for="login-username">ユーザー名</label>
+        <input id="login-username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+        <label for="login-password">パスワード</label>
+        <input id="login-password" type="password" autocomplete="current-password" required>
+        <p id="login-message" class="message" role="alert"></p>
+        <button type="submit" class="btn primary wide">ログイン</button>
+      </form>
+
+      <form id="form-register" class="form" hidden>
+        <label for="register-username">ユーザー名（2〜20文字）</label>
+        <input id="register-username" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+        <label for="register-password">パスワード（8文字以上）</label>
+        <input id="register-password" type="password" autocomplete="new-password" required>
+        <label for="register-invite">招待コード</label>
+        <input id="register-invite" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+        <p class="hint">管理者のユーザー名で登録するときだけ、この欄に「回復用の合言葉」を入力します。</p>
+        <p id="register-message" class="message" role="alert"></p>
+        <button type="submit" class="btn primary wide">登録してはじめる</button>
+      </form>
+
+      <form id="form-recover" class="form" hidden>
+        <h2 class="subtitle">管理者のパスワードを再設定</h2>
+        <label for="recover-code">回復用の合言葉</label>
+        <input id="recover-code" type="password" autocomplete="off" required>
+        <label for="recover-password">新しいパスワード（8文字以上）</label>
+        <input id="recover-password" type="password" autocomplete="new-password" required>
+        <p id="recover-message" class="message" role="alert"></p>
+        <button type="submit" class="btn primary wide">パスワードを再設定する</button>
+        <button type="button" id="link-back-login" class="link-btn">ログインに戻る</button>
+      </form>
+
+      <div id="recover-link-area" class="auth-footer">
+        <button type="button" id="link-recover" class="link-btn">管理者のパスワードを忘れた場合</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- パスワード変更（管理者に初期化された直後は、必ずここを通ります） -->
+  <main id="view-password" class="center-view" hidden>
+    <div class="card">
+      <h1 id="password-title" class="title">パスワードの変更</h1>
+      <p id="password-note" class="muted"></p>
+      <form id="form-password" class="form">
+        <label for="pw-current">今のパスワード</label>
+        <input id="pw-current" type="password" autocomplete="current-password" required>
+        <label for="pw-new">新しいパスワード（8文字以上）</label>
+        <input id="pw-new" type="password" autocomplete="new-password" required>
+        <label for="pw-confirm">新しいパスワード（確認）</label>
+        <input id="pw-confirm" type="password" autocomplete="new-password" required>
+        <p id="password-message" class="message" role="alert"></p>
+        <div class="row">
+          <button type="submit" class="btn primary">変更する</button>
+          <button type="button" id="btn-password-cancel" class="btn">キャンセル</button>
+          <button type="button" id="btn-password-logout" class="btn" hidden>ログアウト</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <!-- チャット画面 -->
+  <div id="view-chat" class="chat" hidden>
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-title">友達チャット</div>
+      <nav id="room-list" class="room-list" aria-label="部屋の一覧"></nav>
+      <div class="sidebar-footer">
+        <div class="me">
+          <span id="me-name" class="me-name"></span>
+          <span id="me-badge" class="badge" hidden>管理者</span>
+        </div>
+        <div class="footer-buttons">
+          <button type="button" id="btn-admin" class="btn small" hidden>ユーザー管理</button>
+          <button type="button" id="btn-change-password" class="btn small">パスワード変更</button>
+          <button type="button" id="btn-logout" class="btn small">ログアウト</button>
+        </div>
+      </div>
+    </aside>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
+
+    <section class="main">
+      <header class="main-header">
+        <button type="button" id="btn-menu" class="icon-btn menu-btn" aria-label="メニューを開く">☰</button>
+        <h2 id="room-title" class="room-title"></h2>
+        <span id="conn-status" class="conn-status"></span>
+      </header>
+      <div id="chat-notice" class="chat-notice" role="status" hidden></div>
+      <div id="messages" class="messages" aria-live="polite"></div>
+      <form id="composer" class="composer">
+        <textarea id="input" rows="1" maxlength="2000" aria-label="メッセージ" placeholder="メッセージを入力" enterkeyhint="send"></textarea>
+        <button type="submit" id="btn-send" class="btn primary">送信</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- ユーザー管理（管理者だけ） -->
+  <dialog id="admin-dialog" class="dialog">
+    <div class="dialog-head">
+      <h2 class="subtitle">ユーザー管理</h2>
+      <button type="button" id="admin-close" class="icon-btn" aria-label="閉じる">✕</button>
+    </div>
+    <div id="admin-result" class="notice" hidden></div>
+    <p id="admin-error" class="message" role="alert"></p>
+    <ul id="admin-users" class="user-list"></ul>
+  </dialog>
+
+</body>
+</html>
