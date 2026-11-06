@@ -23,7 +23,7 @@
     {
       "binding": "DB",
       "database_name": "friends-chat-db",
-      "database_id": "ここをD1のデータベースIDに書き換える"
+      "database_id": "a4db5ed9-57c2-4e84-9672-63ca5963bbd8"
     }
   ],
 
